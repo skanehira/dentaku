@@ -7,7 +7,7 @@ type Lexer struct {
 	ch           byte
 }
 
-func New(input string) *Lexer {
+func NewLexer(input string) *Lexer {
 	l := &Lexer{
 		input: input,
 	}
@@ -43,5 +43,43 @@ func (l *Lexer) readNumber() string {
 func (l *Lexer) skipWhitespace() {
 	for l.ch == ' ' || l.ch == '\t' || l.ch == '\r' || l.ch == '\n' {
 		l.readChar()
+	}
+}
+
+func (l *Lexer) NextToken() Token {
+	var tok Token
+
+	l.skipWhitespace()
+
+	switch l.ch {
+	case '+':
+		newToken(PLUS, l.ch)
+	case '-':
+		newToken(MINUS, l.ch)
+	case '/':
+		newToken(SLASH, l.ch)
+	case '*':
+		newToken(ASTERISK, l.ch)
+	case '(':
+		newToken(LPARN, l.ch)
+	case ')':
+		newToken(RPARN, l.ch)
+	case 0:
+		tok.Type = EOF
+		return tok
+	default:
+		tok.Type = ILLEGAL
+		return tok
+	}
+
+	l.readChar()
+
+	return tok
+}
+
+func newToken(tokenType TokenType, literal byte) Token {
+	return Token{
+		Type:    tokenType,
+		Literal: string(literal),
 	}
 }
