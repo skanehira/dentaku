@@ -1,8 +1,10 @@
-package main
+package ast
 
 import (
 	"bytes"
 	"strconv"
+
+	"github.com/skanehira/dentaku/token"
 )
 
 type Node interface {
@@ -38,7 +40,7 @@ func (p *Program) String() string {
 }
 
 type ExpressionStatement struct {
-	Token      Token
+	Token      token.Token
 	Expression Expression
 }
 
@@ -53,28 +55,28 @@ func (e *ExpressionStatement) String() string {
 	return ""
 }
 
-type Int struct {
-	Token Token
+type IntegerLiteral struct {
+	Token token.Token
 	Value int64
 }
 
-func (i Int) String() string {
+func (i *IntegerLiteral) String() string {
 	return strconv.FormatInt(i.Value, 10)
 }
 
-func (i Int) TokenLiteral() string {
+func (i *IntegerLiteral) TokenLiteral() string {
 	return i.Token.Literal
 }
 
-type Float struct {
-	Token Token
+type FloatLiteral struct {
+	Token token.Token
 	Value float64
 }
 
-func (f Float) String() string {
+func (f FloatLiteral) String() string {
 	return strconv.FormatFloat(f.Value, 'f', -1, 64)
 }
 
-func (f Float) TokenLiteral() string {
+func (f FloatLiteral) TokenLiteral() string {
 	return f.Token.Literal
 }

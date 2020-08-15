@@ -1,4 +1,4 @@
-package main
+package token
 
 type TokenType string
 
@@ -12,6 +12,9 @@ const (
 	SLASH    = "/"
 
 	ILLEGAL = "ILLEGAL"
+
+	INT   = "INT"
+	FLOAT = "FLOAT"
 )
 
 type Token struct {
