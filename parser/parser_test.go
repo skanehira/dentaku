@@ -43,6 +43,80 @@ func TestParsingPrefixExpression(t *testing.T) {
 	}
 }
 
+func TestParsingInfixExpression(t *testing.T) {
+	tests := []struct {
+		input      string
+		leftValue  int64
+		operator   string
+		rightValue int64
+	}{
+		{"5+5", 5, "+", 5},
+		{"5-5", 5, "-", 5},
+		{"5*5", 5, "*", 5},
+		{"5/5", 5, "/", 5},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+
+		program := p.ParseProgram()
+
+		if len(program.Expressions) != 1 {
+			t.Fatalf("program.Expressions does not contain %d expressions. got=%d", 1, len(program.Expressions))
+		}
+
+		exp, ok := program.Expressions[0].(*ast.InfixExpression)
+		if !ok {
+			t.Fatalf("program.Expression[0] not ast.InfixExpression. got=%T", program.Expressions[0])
+		}
+
+		if !testIntegerLiteral(t, exp.Left, tt.leftValue) {
+			return
+		}
+
+		if !testIntegerLiteral(t, exp.Right, tt.rightValue) {
+			return
+		}
+	}
+}
+
+func TestOperatorPrecedenceParsing(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			"-1 * 2",
+			"((-1)*2)",
+		},
+		{
+			"-1 * -2",
+			"((-1)*(-2))",
+		},
+		{
+			"1 + 2 + 3 * 4 / 5 * 6",
+			"((1+2)+(((3*4)/5)*6))",
+		},
+		{
+			"1 * 2 - 3 / 4 + 5",
+			"(((1*2)-(3/4))+5)",
+		},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+
+		program := p.ParseProgram()
+
+		actual := program.String()
+		if actual != tt.expected {
+			t.Errorf("expected=%q, got=%q", tt.expected, actual)
+		}
+	}
+}
+
 func testIntegerLiteral(t *testing.T, il ast.Expression, value int64) bool {
 	t.Helper()
 	integ, ok := il.(*ast.IntegerLiteral)
