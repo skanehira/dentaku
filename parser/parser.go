@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/skanehira/dentaku/ast"
@@ -34,43 +35,54 @@ func New(l *lexer.Lexer) *Parser {
 		l: l,
 	}
 
-	p.nextToken()
-	p.nextToken()
-
 	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
 
 	p.registerPrefix(token.INT, p.parseIntegerLiteral)
 	p.registerPrefix(token.FLOAT, p.parseFloatLiteral)
+	p.registerPrefix(token.MINUS, p.parsePrefixExpression)
+
+	p.nextToken()
+	p.nextToken()
 
 	return p
 }
 
 func (p *Parser) nextToken() {
 	p.curToken = p.peekToken
-	p.l.NextToken()
+	p.peekToken = p.l.NextToken()
 }
 
 func (p *Parser) ParseProgram() *ast.Program {
 	program := &ast.Program{}
 	for p.curToken.Type != token.EOF {
-		stmt := p.parseStatement()
-		if stmt != nil {
-			program.Statements = append(program.Statements, stmt)
+		exp := p.parseExpression(LOWSET)
+		if exp != nil {
+			program.Expressions = append(program.Expressions, exp)
 		}
 		p.nextToken()
 	}
 	return program
 }
 
-func (p *Parser) parseStatement() ast.Statement {
-	switch p.curToken {
-	default:
-		return p.parseExpressionStatement()
+func (p *Parser) parseExpression(precedence int) ast.Expression {
+	prefix := p.prefixParseFns[p.curToken.Type]
+	if prefix == nil {
+		panic(fmt.Sprintf("no parse functions. token is %#+v", p.curToken))
 	}
+	leftExp := prefix()
+	return leftExp
 }
 
-func (p *Parser) parseExpressionStatement() ast.Expression {
-	return nil
+func (p *Parser) parsePrefixExpression() ast.Expression {
+	expression := &ast.PrefixExpression{
+		Token:    p.curToken,
+		Operator: p.curToken.Literal,
+	}
+
+	p.nextToken()
+
+	expression.Right = p.parseExpression(PREFIX)
+	return expression
 }
 
 func (p *Parser) parseIntegerLiteral() ast.Expression {

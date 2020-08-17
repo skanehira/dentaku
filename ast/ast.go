@@ -12,28 +12,24 @@ type Node interface {
 	String() string
 }
 
-type Statement interface {
-	Node
-}
-
 type Expression interface {
 	Node
 }
 
 type Program struct {
-	Statements []Statement
+	Expressions []Expression
 }
 
 func (p *Program) TokenLiteral() string {
-	if len(p.Statements) > 0 {
-		return p.Statements[0].TokenLiteral()
+	if len(p.Expressions) > 0 {
+		return p.Expressions[0].TokenLiteral()
 	}
 	return ""
 }
 
 func (p *Program) String() string {
 	var out bytes.Buffer
-	for _, s := range p.Statements {
+	for _, s := range p.Expressions {
 		out.WriteString(s.String())
 	}
 	return out.String()
@@ -73,10 +69,29 @@ type FloatLiteral struct {
 	Value float64
 }
 
-func (f FloatLiteral) String() string {
+func (f *FloatLiteral) String() string {
 	return strconv.FormatFloat(f.Value, 'f', -1, 64)
 }
 
-func (f FloatLiteral) TokenLiteral() string {
+func (f *FloatLiteral) TokenLiteral() string {
 	return f.Token.Literal
+}
+
+type PrefixExpression struct {
+	Token    token.Token
+	Operator string
+	Right    Expression
+}
+
+func (p *PrefixExpression) String() string {
+	var out bytes.Buffer
+	out.WriteString("(")
+	out.WriteString(p.Operator)
+	out.WriteString(p.Right.String())
+	out.WriteString(")")
+	return out.String()
+}
+
+func (p *PrefixExpression) TokenLiteral() string {
+	return p.Token.Literal
 }

@@ -7,7 +7,7 @@ import (
 )
 
 func TestNextToken(t *testing.T) {
-	input := `-2 + 5 + 10 - 2 * ( 4.4 / 2.2 + -1.5 )`
+	input := `5 + 10 - 2 * ( 4.4 / 2.2 )`
 
 	l := New(input)
 
@@ -15,8 +15,6 @@ func TestNextToken(t *testing.T) {
 		tokenType token.TokenType
 		literal   string
 	}{
-		{token.INT, "-2"},
-		{token.PLUS, "+"},
 		{token.INT, "5"},
 		{token.PLUS, "+"},
 		{token.INT, "10"},
@@ -27,8 +25,6 @@ func TestNextToken(t *testing.T) {
 		{token.FLOAT, "4.4"},
 		{token.SLASH, "/"},
 		{token.FLOAT, "2.2"},
-		{token.PLUS, "+"},
-		{token.FLOAT, "-1.5"},
 		{token.RPARN, ")"},
 		{token.EOF, ""},
 	}
