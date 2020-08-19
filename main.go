@@ -1,17 +1,45 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"os"
-	"text/scanner"
+
+	"github.com/skanehira/dentaku/lexer"
+	"github.com/skanehira/dentaku/parser"
 )
 
-func main() {
-	var s scanner.Scanner
-	s.Init(os.Stdin)
+func Start(in io.Reader, out io.Writer) {
+	scanner := bufio.NewScanner(in)
+
 	for {
-		fmt.Print("> ")
-		x := s.Scan()
-		fmt.Println(x, s.TokenText())
+		print(">> ")
+		if !scanner.Scan() {
+			return
+		}
+
+		line := scanner.Text()
+
+		l := lexer.New(line)
+		p := parser.New(l)
+
+		program := p.ParseProgram()
+		if len(p.Errors()) != 0 {
+			printParseError(out, p.Errors())
+			continue
+		}
+
+		fmt.Fprintln(out, program.String())
 	}
+}
+
+func printParseError(out io.Writer, errors []string) {
+	for _, e := range errors {
+		fmt.Fprintln(out, e)
+	}
+}
+
+func main() {
+	Start(os.Stdin, os.Stdout)
 }

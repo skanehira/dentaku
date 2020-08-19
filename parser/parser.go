@@ -35,6 +35,7 @@ type Parser struct {
 	peekToken      token.Token
 	prefixParseFns map[token.TokenType]prefixParseFn
 	infixParseFns  map[token.TokenType]infixParseFn
+	errors         []string
 }
 
 func New(l *lexer.Lexer) *Parser {
@@ -79,10 +80,21 @@ func (p *Parser) ParseProgram() *ast.Program {
 	return program
 }
 
+func (p *Parser) Errors() []string {
+	return p.errors
+}
+
+func (p *Parser) peekError(token token.TokenType) {
+	msg := fmt.Sprintf("expected next token to be %s, got %s insted", token, p.peekToken.Type)
+	p.errors = append(p.errors, msg)
+}
+
 func (p *Parser) parseExpression(precedence int) ast.Expression {
 	prefix := p.prefixParseFns[p.curToken.Type]
 	if prefix == nil {
-		panic(fmt.Sprintf("no parse functions. token is %s", p.curToken.Type))
+		msg := fmt.Sprintf("no prefix parse function for %s found", p.curToken.Type)
+		p.errors = append(p.errors, msg)
+		return nil
 	}
 
 	leftExp := prefix()
@@ -140,6 +152,8 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 
 	v, err := strconv.ParseInt(p.curToken.Literal, 0, 64)
 	if err != nil {
+		msg := fmt.Sprintf("could not parse %q as integer", p.curToken.Literal)
+		p.errors = append(p.errors, msg)
 		return nil
 	}
 	lit.Value = v
@@ -154,6 +168,8 @@ func (p *Parser) parseFloatLiteral() ast.Expression {
 
 	v, err := strconv.ParseFloat(p.curToken.Literal, 64)
 	if err != nil {
+		msg := fmt.Sprintf("could not parse %q as float", p.curToken.Literal)
+		p.errors = append(p.errors, msg)
 		return nil
 	}
 	lit.Value = v
@@ -170,6 +186,7 @@ func (p *Parser) expectPeek(token token.TokenType) bool {
 		p.nextToken()
 		return true
 	}
+	p.peekError(token)
 	return false
 }
 
