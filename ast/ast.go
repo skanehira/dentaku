@@ -35,22 +35,6 @@ func (p *Program) String() string {
 	return out.String()
 }
 
-type ExpressionStatement struct {
-	Token      token.Token
-	Expression Expression
-}
-
-func (e *ExpressionStatement) TokenLiteral() string {
-	return e.Token.Literal
-}
-
-func (e *ExpressionStatement) String() string {
-	if e.Expression != nil {
-		return e.Expression.String()
-	}
-	return ""
-}
-
 type IntegerLiteral struct {
 	Token token.Token
 	Value int64
