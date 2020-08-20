@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/skanehira/dentaku/eval"
 	"github.com/skanehira/dentaku/lexer"
 	"github.com/skanehira/dentaku/parser"
 )
@@ -30,7 +31,10 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		fmt.Fprintln(out, program.String())
+		evaluted := eval.Eval(program)
+		if evaluted != nil {
+			fmt.Fprintln(out, evaluted.Inspect())
+		}
 	}
 }
 
